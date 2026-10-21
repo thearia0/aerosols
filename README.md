@@ -14,3 +14,8 @@ After preparing the simulation it will be run with different aerosol size spectr
 -trying to understand how to compile my new example externally;
 -compiling using exteral cleo works (at least CMakeLists.txt files work);
 -time to create the actual example;
+;
+14.10 - sorting out courses situation;
+21.10 - organizational tasks;
+-getting Late registration forms to academic office
+-getting proffesrs signature
