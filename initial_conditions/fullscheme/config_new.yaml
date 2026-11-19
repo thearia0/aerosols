@@ -1,0 +1,105 @@
+# ----- CLEO -----
+# File: config.yaml
+# Project: config
+# Created Date: Friday 27th June 2025
+# Author: Clara Bayley (CB)
+# Additional Contributors:
+# -----
+# Last Modified: Friday 27th June 2025
+# Modified By: CB
+# -----
+# License: BSD 3-Clause "New" or "Revised" License
+# https://opensource.org/licenses/BSD-3-Clause
+# -----
+# Copyright (c) 2023 MPI-M, Clara Bayley
+# -----
+# File Description:
+# Configuration file for CLEO SDM coupled to a dynamics solver.
+# Note: The initial superdroplets data read from file "initsupers_filename" can be made with
+# CLEO's cleopy module (see Python script "create_initsuperdropsbinary_script.py" for usage).
+# Likewise the "grid_filename" can be made using cleopy (see "create_gbxboundariesbinary_script.py"),
+# and so can the thermodynamics files when using coupled thermodynamics "fromfile".
+#
+
+### Superdroplet Initialization Parameters ###
+superdroplet_initialization:
+  geomean: 4.0e-8                                  # geometric mean radius of initial droplet spectrum [m]
+  geosig: 1.4                                      # geometric standard deviation of initial droplet spectrum
+  numconc: 100000000                               # number conc. of initial droplet spectrum [m^-3]
+  nsupers_pergbx: 16                               # no. of super-droplets per gridbox to initialise
+  alpha: 0.0                                       # sampling param: 0 -> const xi, 1 -> xi follows spectrum
+
+### Kokkos Initialization Parameters ###
+kokkos_settings:
+  num_threads: 3                                      # number of threads for host parallel backend
+
+### SDM Runtime Parameters ###
+domain:
+  nspacedims: 1                                        # no. of spatial dimensions to model
+  ngbxs: 129                                           # total number of Gbxs
+  maxnsupers: 4128                                     # maximum number of SDs
+
+timesteps:
+  CONDTSTEP: 0.1                                        # time between SD condensation [s]
+  COLLTSTEP: 1.25                                       # time between SD collision [s]
+  MOTIONTSTEP: 1.25                                     # time between SDM motion [s]
+  COUPLTSTEP: 1.25                                      # time between dynamic couplings [s]
+  OBSTSTEP: 1.25                                        # time between SDM observations [s]
+  T_END: 3600                                           # time span of integration from 0s to T_END [s]
+
+### Initialisation Parameters ###
+inputfiles:
+  constants_filename: 
+    build/_deps/cleo-src/libs/cleoconstants.hpp/cleoconstants.hpp     # (relative path working for pytests in CI) name of file for values of physical constants
+  grid_filename: build/share/dimlessGBxboundaries.dat     # (relative path working for pytests in CI) binary filename for initialisation of GBxs / GbxMaps
+
+initsupers:
+  type: frombinary                                        # type of initialisation of super-droplets
+  initsupers_filename: build/share/dimlessSDsinit.dat     # (relative path working for pytests in CI) binary filename for initialisation of SDs
+  initnsupers: 2064                                       # initial no. of super-droplets to initialise
+
+### Output Parameters ###
+outputdata:
+  setup_filename: build/bin/fullscheme/setup.txt        # (relative path working for pytests in CI) .txt filename to copy configuration to
+  zarrbasedir: build/bin/fullscheme/sol.zarr            # (relative path working for pytests in CI) zarr store base directory
+  maxchunk: 2500000                                     # maximum no. of elements in chunks of zarr store array
+
+### Microphysics Parameters ###
+microphysics:
+  condensation:
+    do_alter_thermo: true                              # true = cond/evap alters the thermodynamic state
+    maxniters: 50                                      # maximum no. iterations of Newton Raphson Method
+    MINSUBTSTEP: 0.0005                                # minimum subtimestep in cases of substepping [s]
+    rtol: 0.0                                          # relative tolerance for implicit Euler integration
+    atol: 0.001                                        # absolute tolerance for implicit Euler integration
+
+### Bounday Conditions Parameters ###
+boundary_conditions:
+  type: addsuperstodomain
+  LOWER_COORD3LIM: 0                                   # SDs added to domain with coord3 < LOWER_COORD3LIM [m]
+  UPPER_COORD3LIM: 3200                                # SDs added to domain with coord3 >= UPPER_COORD3LIM [m]
+  newnsupers: 16                                       # number SDs to add to each gridbox below/above LOWER/UPPER_COORD3LIM
+  DRYRADIUS: 1.0                                       # max dry radius of new super-droplets (for solute mass) [m]
+  MINRADIUS: 1.0e-8                                    # minimum radius of new super-droplets [m]
+  MAXRADIUS: 1.5e-7                                    # maximum radius of new super-droplets [m]
+  NUMCONC_a: 100000000                                 # number conc. of 1st droplet lognormal dist [m^-3]
+  GEOMEAN_a: 4.0e-8                                    # geometric mean radius of 1st lognormal dist [m]
+  geosigma_a: 1.4                                      # geometric standard deviation of 1st lognormal dist
+  NUMCONC_b: 0.0                                       # number conc. of 2nd droplet lognormal dist [m^-3]
+  GEOMEAN_b: 4.0e-8                                    # geometric mean radius of 2nd lognormal dist [m]
+  geosigma_b: 1.4                                      # geometric standard deviation of 2nd lognormal dist
+
+### CLEO Python Bindings Parameters ###
+python_bindings:
+  enable_terminal_velocity: true                                  # true enables terminal velocity in superdroplet motion
+  enable_condensation: true                                        # true enables condensation in microphysics
+  enable_collisions: true                                         # true enables collisions in microphysics
+  enable_observers:                                                 # true for the following set enables various observers
+    time: true
+    gbxindex: true                                                  # currently only true is allowed for gbxindex observer
+    totnsupers: true
+    massmoms: true
+    rainmassmoms: true
+    gridboxes: true
+    superdrops: true
+    precip: true

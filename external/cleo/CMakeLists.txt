@@ -34,3 +34,5 @@ FetchContent_GetProperties(cleo)
 if(NOT cleo_POPULATED)
   FetchContent_Populate(cleo)
 endif()
+
+add_subdirectory(${cleo_SOURCE_DIR} ${cleo_BINARY_DIR})
